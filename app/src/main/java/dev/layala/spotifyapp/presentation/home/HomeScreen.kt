@@ -1,26 +1,15 @@
 package dev.layala.spotifyapp.presentation.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LibraryMusic
-import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,15 +17,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import androidx.compose.ui.platform.LocalContext
 import dev.layala.spotifyapp.presentation.navigation.Routes
 
 // -------------------- Datos demo --------------------
@@ -52,8 +42,10 @@ private val demoTracks = listOf(
     TrackUi("Everybody's Changing", "Keane", "3:30", "https://i.scdn.co/image/ab67616d0000b2737d6cd95a046a3c0dacbc7d33"),
     TrackUi("Cardigan", "Taylor Swift", "4:00", "https://cdn-images.dzcdn.net/images/cover/290abe93bdda84bb8b170f30a4998c4c/1900x1900-000000-80-0-0.jpg"),
     TrackUi("Demons", "Imagine Dragons", "2:58", "https://i.scdn.co/image/ab67616d0000b273b2b2747c89d2157b0b29fb6a"),
+    TrackUi("New Jeans", "Supernatural", "3:11", "https://cdn-images.dzcdn.net/images/cover/826894f2ec39ae1eea620eddecdcf6b7/0x1900-000000-80-0-0.jpg"),
     TrackUi("Clocks", "Coldplay", "3:12", "https://cdn-images.dzcdn.net/images/cover/5ba1787e1ec36dbbca38ff01fea8fb21/1900x1900-000000-80-0-0.jpg"),
-)
+
+    )
 // ----------------------------------------------------
 
 @Composable
@@ -62,7 +54,7 @@ fun HomeScreen(navController: NavController) {
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { BottomBar(navController) }
     ) { padding ->
-        val extraBottomSpace = 76.dp // altura para que no tape la tarjeta flotante
+        val extraBottomSpace = 76.dp // espacio para que no tape la tarjeta flotante
 
         Box(Modifier.fillMaxSize()) {
 
@@ -111,7 +103,7 @@ fun HomeScreen(navController: NavController) {
                                 .height(320.dp)
                         )
 
-                        // Gradiente de legibilidad
+                        // Gradiente para texto legible
                         Box(
                             Modifier
                                 .matchParentSize()
@@ -149,23 +141,35 @@ fun HomeScreen(navController: NavController) {
                             )
                             Spacer(Modifier.height(12.dp))
 
+                            // Fila de acciones (avatar cuadrado + íconos + shuffle + play)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                ActionIcon(Icons.Outlined.FavoriteBorder)
+                                AvatarSquare(
+                                    imageUrl = "https://www.t-mobilecenter.com/assets/img/08.15.17-Coldplay-530x500-v1-ec4dca7cbf.jpg",
+                                    sizeDp = 28.dp
+                                )
+                                Spacer(Modifier.width(10.dp))
+
+                                ActionIcon(Icons.Outlined.Add)
                                 Spacer(Modifier.width(8.dp))
                                 ActionIcon(Icons.Outlined.FileDownload)
                                 Spacer(Modifier.width(8.dp))
-                                ActionIcon(Icons.Outlined.Share)
+                                ActionIcon(Icons.Outlined.MoreHoriz)
+
                                 Spacer(Modifier.weight(1f))
-                                PlayButton()
+
+                                ActionIcon(Icons.Outlined.Shuffle)
+                                Spacer(Modifier.width(8.dp))
+
+                                PlayFab()
                             }
                         }
                     }
                 }
 
-                // LISTA DE TRACKS (miniatura + número + info + duración + menú)
+                // LISTA DE TRACKS
                 itemsIndexed(demoTracks) { idx, t ->
                     TrackRow(index = idx, t = t)
                 }
@@ -223,18 +227,36 @@ private fun ActionIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
     }
 }
 
+/** Avatar cuadrado con esquinas redondeadas */
 @Composable
-private fun PlayButton() {
-    Surface(
-        color = MaterialTheme.colorScheme.primary, // pon #1DB954 en tu Theme para el verde Spotify
-        shape = RoundedCornerShape(28.dp)
-    ) {
-        Text(
-            "▶ Play",
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-            color = Color.Black,
-            style = MaterialTheme.typography.labelLarge
+private fun AvatarSquare(imageUrl: String, sizeDp: Dp) {
+    Surface(shape = RoundedCornerShape(6.dp), color = Color.Transparent) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Profile",
+            modifier = Modifier
+                .size(sizeDp)
+                .clip(RoundedCornerShape(6.dp)),
+            contentScale = ContentScale.Crop
         )
+    }
+}
+
+/** Botón verde circular estilo Spotify */
+@Composable
+private fun PlayFab() {
+    Surface(
+        color = Color(0xFF1DB954), // verde Spotify
+        shape = CircleShape,
+        modifier = Modifier.size(56.dp)
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = "Play",
+                tint = Color.Black,
+            )
+        }
     }
 }
 
@@ -333,34 +355,15 @@ private fun NowPlayingFloating(
                 )
             }
 
-            // Botón/etiqueta a la derecha (CB)
-            Surface(
-                color = Color.Transparent,
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, playingFg)
-            ) {
-                Text(
-                    "CB",
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    color = playingFg,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
+            Spacer(Modifier.width(12.dp))
 
-            Spacer(Modifier.width(8.dp))
-
-            // Play
-            Surface(
-                color = Color.White,
-                shape = RoundedCornerShape(20.dp)
-            ) {
-                Text(
-                    "▶",
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    color = Color.Black,
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
+            // ▶ flechita blanca simple (sin círculo)
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = "Play",
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
